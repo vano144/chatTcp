@@ -81,12 +81,20 @@ dialog::dialog(const int port,QWidget *parent) : QDialog(parent)
     connect(connectButton,SIGNAL(clicked(bool)),this,SLOT(connectToServer()));
     connect(sendButton,SIGNAL(clicked(bool)),this,SLOT(sendMessage()));
     connect(deleteButton,SIGNAL(clicked(bool)),this,SLOT(sendlastMessage()));
+    sendButton->setDisabled(true);
+    deleteButton->setDisabled(true);
+
 }
 void dialog::sendlastMessage()
 {
      socket->write((getUserName()+" disconnected").toUtf8());
+     //socket->close();
+     socket->disconnect();
      socket->close();
      textEdit->append("You are disconnected");
+     connectButton->setDisabled(false);
+     sendButton->setDisabled(true);
+     deleteButton->setDisabled(true);
 }
 
 void dialog::connectToServer()
@@ -97,42 +105,17 @@ void dialog::connectToServer()
         fieldForName->setReadOnly(true);
     }
     if (getUserName()=="") return;
-
-    if (socket->localPort())
-    {
-        textEdit->append("You have already connected");
-        return;
-    }
     socket->connectToHost(QHostAddress::LocalHost,localPort);
     socket->write((getUserName()+"is connected").toUtf8());
+    connectButton->setDisabled(true);
+    sendButton->setDisabled(false);
+    deleteButton->setDisabled(false);
 }
 
 
 
 void dialog::socketReadyRead()
 {
-
-    QDataStream in(socket);
-//    if (blockSize == 0) {
-//        if (socket->bytesAvailable() < (int)sizeof(quint16))
-//            return;
-//        in >> blockSize;
-//    }
-//    if (socket->bytesAvailable() < blockSize)
-//        return;
-//    else
-//        blockSize = 0;
-//    quint8 command;
-//    in >> command;
-
-//    switch (command)
-//    {
-//        default:
-//            QString message;
-//            in >> message;
-//            showMessage(message);
-//        break;
-//    }
     textEdit->append(socket->readAll());
 }
 
@@ -154,4 +137,12 @@ void dialog::sendMessage()
 dialog::~dialog()
 {
     socket->disconnect();
+    delete socket;
+
+    delete textEdit;
+    delete sendButton;
+    delete connectButton;
+    delete deleteButton;
+    delete fieldForName;
+    delete fieldForMessage;
 }

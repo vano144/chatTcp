@@ -82,10 +82,24 @@ void MyServer::slotReadClient()
         //qDebug()<<strMessage;
         QByteArray str = clientSocket->readAll();
         //textEdit->append(clientSocket->readAll());
+        QRegExp r("disconnected");
         textEdit->append(str);
         sendOthers(clientSocket,str);
+        if ( r.indexIn(str)!=-1)
+        {
+            listOfconnected->remove(listOfconnected->indexOf(clientSocket));
+            return;
+        }
+
         //textEdit->append(strMessage);
         sendToClient(clientSocket,"Server response: received");
+
+//        QRegExp q("connected");
+//        if ( q.indexIn(str)!=-1)
+//        {
+//            listOfconnected->push_back(clientSocket);
+
+//        }
     //}
 }
 
@@ -109,5 +123,6 @@ void MyServer::sendToClient(QTcpSocket *socket, const QString &str)
 
 MyServer::~MyServer()
 {
-
+    delete tcpServer;
+    delete textEdit;
 }
